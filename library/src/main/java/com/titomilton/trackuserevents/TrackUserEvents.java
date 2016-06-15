@@ -1,6 +1,8 @@
 package com.titomilton.trackuserevents;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.gson.GsonBuilder;
@@ -38,7 +40,7 @@ public class TrackUserEvents {
         eventRequest.setMeta(new EventRequestMeta());
         EventRequestMeta meta = eventRequest.getMeta();
         meta.setName(eventName);
-        meta.setEventNo(1l);
+        meta.setEventNo(getNextEventNo());
         meta.setLocalTimeStamp(System.currentTimeMillis() / 1000L);
         meta.setConnectionInfo(ConnectionInfo.getConnectionType(context));
 
@@ -53,6 +55,16 @@ public class TrackUserEvents {
 
         call.enqueue(callback);
 
+    }
+
+    private long getNextEventNo(){
+        SharedPreferences sharedPrefs =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        long eventNo = sharedPrefs.getLong("eventNo", 0l);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putLong("eventNo", ++eventNo);
+        editor.commit();
+        return eventNo;
     }
 
 
