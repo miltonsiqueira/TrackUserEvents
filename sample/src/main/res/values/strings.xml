@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Track User Events</string>
+    <string name="title_activity_main">Track User Events Sample</string>
+    <string name="api_key">API Key</string>
+    <string name="api_key_edit_text">kilctuhEeONbf-V1JMH7</string>
+    <string name="event_name">Event Name</string>
+    <string name="send">Send</string>
 </resources>
