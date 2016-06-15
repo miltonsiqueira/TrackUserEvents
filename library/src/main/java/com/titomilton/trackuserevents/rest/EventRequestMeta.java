@@ -5,6 +5,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class EventRequestMeta {
 
+    public static final String CONNECTION_WIFI = "wifi";
+    public static final String CONNECTION_MOBILE = "mobile";
+
     @SerializedName("eventNo")
     private Long eventNo;
 

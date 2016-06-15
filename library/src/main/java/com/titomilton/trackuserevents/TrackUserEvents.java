@@ -1,5 +1,6 @@
 package com.titomilton.trackuserevents;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.GsonBuilder;
@@ -18,19 +19,20 @@ public class TrackUserEvents {
     private String LOG_TAG = TrackUserEvents.class.getSimpleName();
 
     private final String apiKey;
-
+    private final Context context;
 
     private final Retrofit retrofit;
 
-    public TrackUserEvents(String apiKey) {
+    public TrackUserEvents(String apiKey, Context context) {
         this.apiKey = apiKey;
+        this.context = context;
         this.retrofit = new Retrofit.Builder()
                 .baseUrl(TrackUserEventsService.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
     }
 
-    public void sendEvent(String eventName, Callback<ResponseBody> callback) throws InvalidEventRequestException {
+    public void sendEvent(String eventName, Callback<ResponseBody> callback) throws InvalidEventRequestException, NetworkConnectionNotFoundException {
 
         EventRequest eventRequest = new EventRequest();
         eventRequest.setMeta(new EventRequestMeta());
@@ -38,7 +40,7 @@ public class TrackUserEvents {
         meta.setName(eventName);
         meta.setEventNo(1l);
         meta.setLocalTimeStamp(System.currentTimeMillis() / 1000L);
-        meta.setConnectionInfo("wifi");
+        meta.setConnectionInfo(ConnectionInfo.getConnectionType(context));
 
         RequestValidator.validate(eventRequest);
 
