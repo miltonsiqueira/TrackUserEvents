@@ -13,6 +13,8 @@ import com.titomilton.trackuserevents.NetworkConnectionNotFoundException;
 import com.titomilton.trackuserevents.TrackUserEvents;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -37,8 +39,16 @@ public class MainActivity extends Activity {
                 final TextView textViewResult = (TextView) findViewById(R.id.textResult);
                 textViewResult.setText("Sending");
 
+                //Key/Value data
+                Map<String, Object> data = new HashMap<String, Object>();
+                data.put("Param1", 1);
+                data.put("Param2", "second");
+                data.put("Param3", 1.987);
+                data.put("Param4", true);
+
+                String eventName = editTextEventName.getText().toString();
                 try {
-                    trackUserEvents.sendEvent(editTextEventName.getText().toString(), new Callback<ResponseBody>() {
+                    trackUserEvents.sendEvent(eventName, data, new Callback<ResponseBody>() {
                         @Override
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             try {

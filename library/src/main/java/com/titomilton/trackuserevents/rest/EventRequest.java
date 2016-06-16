@@ -3,9 +3,14 @@ package com.titomilton.trackuserevents.rest;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Map;
+
 public class EventRequest {
     @SerializedName("meta")
     private EventRequestMeta meta;
+
+    @SerializedName("data")
+    private Map<String, Object> data;
 
     public EventRequest(){
 
@@ -22,5 +27,11 @@ public class EventRequest {
         this.meta = meta;
     }
 
+    public Map<String, Object> getData() {
+        return data;
+    }
 
+    public void setData(Map<String, Object> data) {
+        this.data = data;
+    }
 }
