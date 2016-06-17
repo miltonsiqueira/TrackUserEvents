@@ -8,7 +8,7 @@ import org.junit.Test;
 public class RequestValidatorTest {
     private final long EVENT_NO = 1L;
     private final long LOCAL_TIME_STAMP = 1L;
-    private final String MOBILE = "wifi";
+    private final String MOBILE = "mobile";
     private final String WIFI = "wifi";
     private final String EVENT_NAME = "ev_MyCustomEvent";
 
@@ -41,7 +41,7 @@ public class RequestValidatorTest {
     @Test
     public void validEventNo() throws InvalidEventRequestException{
         RequestValidator.validate(new EventRequest(2L, LOCAL_TIME_STAMP, EVENT_NAME, WIFI));
-        RequestValidator.validate(new EventRequest(100L, LOCAL_TIME_STAMP, EVENT_NAME, WIFI));
+        RequestValidator.validate(new EventRequest(100L, LOCAL_TIME_STAMP, EVENT_NAME, MOBILE));
         RequestValidator.validate(new EventRequest(1000L, LOCAL_TIME_STAMP, EVENT_NAME, WIFI));
     }
 

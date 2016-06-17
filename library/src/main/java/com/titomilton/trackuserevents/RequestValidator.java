@@ -15,17 +15,22 @@ public final class RequestValidator {
         if (eventRequest.getMeta() == null) {
             throw new InvalidEventRequestException("Meta event request cannot be null");
         }
+
+        // Validate eventNo
         EventRequestMeta meta = eventRequest.getMeta();
-        if (meta.getEventNo() == null || meta.getEventNo().longValue() < 1) {
+        if (meta.getEventNo() == null || meta.getEventNo() < 1) {
             throw new InvalidEventRequestException("EventNo cannot be null or less than 1: eventNo=" + meta.getEventNo());
         }
+
+        // Validate localTimeStamp
         if (meta.getLocalTimeStamp() == null || meta.getLocalTimeStamp() < 1) {
             throw new InvalidEventRequestException("Invalid localtimeStamp:" + meta.getLocalTimeStamp());
         }
-        if (meta.getName() == null || !meta.getName().matches(EVENT_NAME_PATTERN)) {
-            throw new InvalidEventRequestException(" Invalid event name '" + meta.getName() +
-                    "'. Please, use the pattern '" + RequestValidator.EVENT_NAME_PATTERN + "'");
-        }
+
+        // Validate event name
+        validateName(meta.getName());
+
+        // Validate type of the connection
         if (meta.getConnectionInfo() == null
                 ||
                 !(meta.getConnectionInfo().equals(EventRequestMeta.CONNECTION_MOBILE)
@@ -35,4 +40,10 @@ public final class RequestValidator {
         }
     }
 
+    public static void validateName(String name) throws InvalidEventRequestException {
+        if (name == null || !name.matches(EVENT_NAME_PATTERN)) {
+            throw new InvalidEventRequestException(" Invalid event name '" + name +
+                    "'. Please, use the pattern '" + RequestValidator.EVENT_NAME_PATTERN + "'");
+        }
+    }
 }
