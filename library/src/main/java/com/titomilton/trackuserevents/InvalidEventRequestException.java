@@ -3,11 +3,8 @@ package com.titomilton.trackuserevents;
 
 public class InvalidEventRequestException extends Throwable {
 
-    private String msg;
+    private final String msg;
 
-    public InvalidEventRequestException() {
-
-    }
 
     public InvalidEventRequestException(String msg) {
         this.msg = msg;

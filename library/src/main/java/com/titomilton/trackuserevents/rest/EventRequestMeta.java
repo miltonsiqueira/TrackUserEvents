@@ -7,17 +7,22 @@ public class EventRequestMeta {
 
     public static final String CONNECTION_WIFI = "wifi";
     public static final String CONNECTION_MOBILE = "mobile";
+    public static final String ELEMENT_META = "meta";
+    public static final String ELEMENT_CONNECTION_INFO = "connectionInfo";
+    public static final String ELEMENT_LOCAL_TIME_STAMP= "localTimeStamp";
+    public static final String ELEMENT_NAME = "name";
+    public static final String ELEMENT_EVENT_NO = "eventNo";
 
-    @SerializedName("eventNo")
+    @SerializedName(ELEMENT_EVENT_NO)
     private Long eventNo;
 
-    @SerializedName("localTimeStamp")
+    @SerializedName(ELEMENT_LOCAL_TIME_STAMP)
     private Long localTimeStamp;
 
-    @SerializedName("name")
+    @SerializedName(ELEMENT_NAME)
     private String name;
 
-    @SerializedName("connectionInfo")
+    @SerializedName(ELEMENT_CONNECTION_INFO)
     private String connectionInfo;
 
     public EventRequestMeta() {
