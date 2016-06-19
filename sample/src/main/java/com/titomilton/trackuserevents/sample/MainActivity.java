@@ -13,6 +13,9 @@ import com.titomilton.trackuserevents.InvalidEventRequestException;
 import com.titomilton.trackuserevents.NetworkConnectionNotFoundException;
 import com.titomilton.trackuserevents.TrackUserEvents;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends Activity {
 
 
@@ -30,6 +33,10 @@ public class MainActivity extends Activity {
                 TrackUserEvents trackUserEvents = new TrackUserEvents(editTextApiKey.getText().toString(), context);
                 final TextView textViewResult = (TextView) findViewById(R.id.textResult);
                 textViewResult.setText("Sending");
+                Map<String, Object> otherParameters = new HashMap<String, Object>();
+                otherParameters.put("other1", "Test2");
+                otherParameters.put("other2", 12321);
+                otherParameters.put("other3", false);
 
                 String eventName = editTextEventName.getText().toString();
                 try {
@@ -38,6 +45,7 @@ public class MainActivity extends Activity {
                             .addParameter("Param2", "test")
                             .addParameter("Param3", 18.39)
                             .addParameter("Param4", true)
+                            .addParameters(otherParameters)
                             .send(new CallbackResponse() {
                                 @Override
                                 public void onResponse(int responseCode, String responseBody, String requestBody) {

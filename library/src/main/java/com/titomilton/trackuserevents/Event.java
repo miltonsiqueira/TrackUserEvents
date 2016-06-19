@@ -66,15 +66,10 @@ public class Event {
         return this;
     }
 
-    public Map<String, Object> getParameters() {
-        return eventRequest.getData();
-    }
-
-    public Event setParameters(Map<String, Object> parameters) {
-        this.eventRequest.setData(parameters);
+    public Event addParameters(Map<String, Object> parameters){
+        this.eventRequest.getData().putAll(parameters);
         return this;
     }
-
 
     public void send(final CallbackResponse callbackResponse) throws NetworkConnectionNotFoundException, JSONException, InvalidEventRequestException {
         send(true, callbackResponse);
