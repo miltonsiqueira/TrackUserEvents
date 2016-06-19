@@ -40,14 +40,31 @@ public class MainActivity extends Activity {
                             .addParameter("Param4", true)
                             .send(new CallbackResponse() {
                                 @Override
-                                public void onResponse(int responseCode, String responseBody, String requestBody, String exceptionResponseBody ) {
+                                public void onResponse(int responseCode, String responseBody, String requestBody) {
                                     String text = "code:" + responseCode +
                                             System.getProperty ("line.separator") +
                                             "Response body:" + responseBody +
                                             System.getProperty ("line.separator") +
-                                            "Request body:" + requestBody +
+                                            "Request body:" + requestBody;
+                                    textViewResult.setText(text);
+                                }
+
+                                @Override
+                                public void onFailedResponse(int code, String responseBody, String requestBody) {
+                                    String text = "code:" + code +
                                             System.getProperty ("line.separator") +
-                                            "Exception response body:" + exceptionResponseBody;
+                                            "Response body:" + responseBody +
+                                            System.getProperty ("line.separator") +
+                                            "Request body:" + requestBody;
+                                    textViewResult.setText(text);
+                                }
+
+                                @Override
+                                public void onFailureReadingResponse(int code, String requestBody, Throwable t) {
+                                    String text = "code:" + code +
+                                            System.getProperty ("line.separator") +
+                                            "Request body:" + requestBody +
+                                            "Exception: " + t.getMessage();
                                     textViewResult.setText(text);
                                 }
 

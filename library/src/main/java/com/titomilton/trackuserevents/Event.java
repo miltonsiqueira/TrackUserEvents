@@ -16,7 +16,7 @@ import com.titomilton.trackuserevents.rest.TrackUserEventsService;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.Map;
 
 import okhttp3.MediaType;
@@ -75,7 +75,12 @@ public class Event {
         return this;
     }
 
-    public void send(final CallbackResponse callbackResponse) throws InvalidEventRequestException, JSONException, NetworkConnectionNotFoundException {
+
+    public void send(final CallbackResponse callbackResponse) throws NetworkConnectionNotFoundException, JSONException, InvalidEventRequestException {
+        send(true, callbackResponse);
+    }
+
+    private void send(final boolean isCache, final CallbackResponse callbackResponse) throws InvalidEventRequestException, JSONException, NetworkConnectionNotFoundException {
 
         try {
 
@@ -97,9 +102,11 @@ public class Event {
             call.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    int code = response.code();
+                    final int code = response.code();
+                    final boolean isPostedSuccessfully = isHttpCreatedCode(code);
                     String responseBody;
                     try {
+
                         if (response.isSuccessful()) {
                             responseBody = response.body().string();
                         } else {
@@ -107,12 +114,24 @@ public class Event {
 
                         }
 
-                        callbackResponse.onResponse(code, responseBody, requestBody, "");
+                        if(isPostedSuccessfully){
+                            callbackResponse.onResponse(code, responseBody, requestBody);
+                        }else{
 
-                    } catch (IOException e) {
-                        callbackResponse.onResponse(code, "", requestBody, "A IOException when got response message. " + e.getMessage());
+                            if(isCache) {
+                                cacheEvent(requestBody);
+                            }
+
+                            callbackResponse.onFailedResponse(code, responseBody, requestBody);
+                        }
+
                     } catch (Exception e) {
-                        callbackResponse.onResponse(code, "", requestBody, "A Exception when got response message. " + e.getMessage());
+
+                        if(isCache){
+                            cacheEvent(requestBody);
+                        }
+
+                        callbackResponse.onFailureReadingResponse(code, requestBody, e);
                     }
                 }
 
@@ -120,19 +139,29 @@ public class Event {
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
                     callbackResponse.onFailure(t);
                 }
+
             });
 
 
         } catch (NetworkConnectionNotFoundException e) {
-            String requestBody = new GsonBuilder().create().toJson(eventRequest);
-            cacheEvent(requestBody);
+
+            if(isCache){
+                String requestBody = new GsonBuilder().create().toJson(eventRequest);
+                cacheEvent(requestBody);
+            }
+
             throw new NetworkConnectionNotFoundException("Event was cached to send later.");
         }
 
     }
 
+
     private void cacheEvent(String json) {
         this.eventJsonDao.addEventJson(json);
+    }
+
+    private boolean isHttpCreatedCode(int code) {
+        return code == HttpURLConnection.HTTP_CREATED;
     }
 
     private long getNextEventNo() {
