@@ -16,6 +16,7 @@ import com.titomilton.trackuserevents.rest.TrackUserEventsService;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Map;
 
 import okhttp3.MediaType;
@@ -23,6 +24,7 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 
 public class Event {
@@ -73,29 +75,57 @@ public class Event {
         return this;
     }
 
-    public void send(Callback<ResponseBody> callback) throws InvalidEventRequestException, JSONException, NetworkConnectionNotFoundException {
+    public void send(final CallbackResponse callbackResponse) throws InvalidEventRequestException, JSONException, NetworkConnectionNotFoundException {
 
-        //eventRequest.getMeta().setConnectionInfo(ConnectionInfo.getConnectionType(context));
-
-        String json = new GsonBuilder().create().toJson(eventRequest);
-
-        String connectionType;
         try {
-            connectionType = ConnectionInfo.getConnectionType(context);
-            json = addConnectionInfo(json, connectionType);
+
+            String connectionType = ConnectionInfo.getConnectionType(context);
+            eventRequest.getMeta().setConnectionInfo(connectionType);
+
             RequestValidator.validate(eventRequest);
-            Log.d(LOG_TAG, "Sending request " + json);
+            final String requestBody = new GsonBuilder().create().toJson(eventRequest);
+
+            Log.d(LOG_TAG, "Sending request " + requestBody);
 
             TrackUserEventsService service = retrofit.create(TrackUserEventsService.class);
 
             //Call<ResponseBody> call = service.sendEvent(this.apiKey, eventRequest);
 
-            RequestBody body = RequestBody.create(MediaType.parse("application/json"), json);
+            RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody);
             Call<ResponseBody> call = service.sendEventRawJSON(this.apiKey, body);
 
-            call.enqueue(callback);
+            call.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    int code = response.code();
+                    String responseBody;
+                    try {
+                        if (response.isSuccessful()) {
+                            responseBody = response.body().string();
+                        } else {
+                            responseBody = response.errorBody().string();
+
+                        }
+
+                        callbackResponse.onResponse(code, responseBody, requestBody, "");
+
+                    } catch (IOException e) {
+                        callbackResponse.onResponse(code, "", requestBody, "A IOException when got response message. " + e.getMessage());
+                    } catch (Exception e) {
+                        callbackResponse.onResponse(code, "", requestBody, "A Exception when got response message. " + e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    callbackResponse.onFailure(t);
+                }
+            });
+
+
         } catch (NetworkConnectionNotFoundException e) {
-            cacheEvent(json);
+            String requestBody = new GsonBuilder().create().toJson(eventRequest);
+            cacheEvent(requestBody);
             throw new NetworkConnectionNotFoundException("Event was cached to send later.");
         }
 

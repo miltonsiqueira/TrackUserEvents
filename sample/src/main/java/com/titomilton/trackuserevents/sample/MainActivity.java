@@ -8,16 +8,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.titomilton.trackuserevents.CallbackResponse;
 import com.titomilton.trackuserevents.InvalidEventRequestException;
 import com.titomilton.trackuserevents.NetworkConnectionNotFoundException;
 import com.titomilton.trackuserevents.TrackUserEvents;
-
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends Activity {
 
@@ -44,29 +38,26 @@ public class MainActivity extends Activity {
                             .addParameter("Param2", "test")
                             .addParameter("Param3", 18.39)
                             .addParameter("Param4", true)
-                            .send(new Callback<ResponseBody>() {
+                            .send(new CallbackResponse() {
                                 @Override
-                                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                                    try {
-                                        if (response.isSuccessful()) {
-                                            textViewResult.setText("onResponse: " + response.body().string());
-                                        } else {
-                                            textViewResult.setText("onResponse: not success " + response.errorBody().string());
-                                        }
-
-                                    } catch (IOException e) {
-                                        textViewResult.setText("onResponse IOException: " + e.getMessage());
-                                    } catch (Exception e) {
-                                        textViewResult.setText("onResponse Exception: " + e.getMessage());
-                                    }
-
+                                public void onResponse(int responseCode, String responseBody, String requestBody, String exceptionResponseBody ) {
+                                    String text = "code:" + responseCode +
+                                            System.getProperty ("line.separator") +
+                                            "Response body:" + responseBody +
+                                            System.getProperty ("line.separator") +
+                                            "Request body:" + requestBody +
+                                            System.getProperty ("line.separator") +
+                                            "Exception response body:" + exceptionResponseBody;
+                                    textViewResult.setText(text);
                                 }
 
                                 @Override
-                                public void onFailure(Call<ResponseBody> call, Throwable t) {
-                                    textViewResult.setText("onFailure" + t.getMessage());
+                                public void onFailure(Throwable t) {
+                                    String text = "onFailure" + t.getMessage();
+                                    textViewResult.setText(text);
                                 }
                             });
+
                 } catch (InvalidEventRequestException e) {
                     textViewResult.setText(e.getMessage());
                 } catch (NetworkConnectionNotFoundException e) {
