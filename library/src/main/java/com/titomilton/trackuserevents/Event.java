@@ -36,19 +36,33 @@ public class Event {
     private final Retrofit retrofit;
     private final EventJsonDao eventJsonDao;
 
-    protected Event(String apiKey, String name, Context context, Retrofit retrofit) throws InvalidEventRequestException {
+    private Event(String apiKey, Context context, Retrofit retrofit, EventRequest eventRequest) {
         this.apiKey = apiKey;
         this.context = context;
         this.retrofit = retrofit;
         this.eventJsonDao = new EventJsonSQLiteDao(new DataBaseHandler(context));
-        this.eventRequest = new EventRequest();
+        this.eventRequest = eventRequest;
+    }
+
+    protected static Event createFromName(String apiKey, String name, Context context, Retrofit retrofit) throws InvalidEventRequestException {
+
+        Event event = new Event(apiKey, context, retrofit, new EventRequest());
+
         RequestValidator.validateName(name);
-        eventRequest.setMeta(new EventRequestMeta());
-        EventRequestMeta meta = eventRequest.getMeta();
+        event.eventRequest.setMeta(new EventRequestMeta());
+        EventRequestMeta meta = event.eventRequest.getMeta();
         meta.setName(name);
-        meta.setEventNo(getNextEventNo());
+        meta.setEventNo(event.getNextEventNo());
         meta.setLocalTimeStamp(System.currentTimeMillis() / 1000L);
 
+        return event;
+
+    }
+
+    protected static Event createFromJson(String apiKey, String json, Context context, Retrofit retrofit) {
+        EventRequest eventRequest = new GsonBuilder().create().fromJson(json, EventRequest.class);
+
+        return new Event(apiKey, context, retrofit, eventRequest);
     }
 
     /**
@@ -66,16 +80,16 @@ public class Event {
         return this;
     }
 
-    public Event addParameters(Map<String, Object> parameters){
+    public Event addParameters(Map<String, Object> parameters) {
         this.eventRequest.getData().putAll(parameters);
         return this;
     }
 
-    public void send(final CallbackResponse callbackResponse) throws NetworkConnectionNotFoundException, JSONException, InvalidEventRequestException {
+    public void send(final CallbackResponse callbackResponse) throws NetworkConnectionNotFoundException, InvalidEventRequestException {
         send(true, callbackResponse);
     }
 
-    private void send(final boolean isCache, final CallbackResponse callbackResponse) throws InvalidEventRequestException, JSONException, NetworkConnectionNotFoundException {
+    protected void send(final boolean isCache, final CallbackResponse callbackResponse) throws InvalidEventRequestException, NetworkConnectionNotFoundException {
 
         try {
 
@@ -85,62 +99,12 @@ public class Event {
             RequestValidator.validate(eventRequest);
             final String requestBody = new GsonBuilder().create().toJson(eventRequest);
 
-            Log.d(LOG_TAG, "Sending request " + requestBody);
-
-            TrackUserEventsService service = retrofit.create(TrackUserEventsService.class);
-
-            //Call<ResponseBody> call = service.sendEvent(this.apiKey, eventRequest);
-
-            RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody);
-            Call<ResponseBody> call = service.sendEventRawJSON(this.apiKey, body);
-
-            call.enqueue(new Callback<ResponseBody>() {
-                @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    final int code = response.code();
-                    final boolean isPostedSuccessfully = isHttpCreatedCode(code);
-                    String responseBody;
-                    try {
-
-                        if (response.isSuccessful()) {
-                            responseBody = response.body().string();
-                        } else {
-                            responseBody = response.errorBody().string();
-
-                        }
-
-                        if(isPostedSuccessfully){
-                            callbackResponse.onResponse(code, responseBody, requestBody);
-                        }else{
-
-                            if(isCache) {
-                                cacheEvent(requestBody);
-                            }
-
-                            callbackResponse.onFailedResponse(code, responseBody, requestBody);
-                        }
-
-                    } catch (Exception e) {
-
-                        if(isCache){
-                            cacheEvent(requestBody);
-                        }
-
-                        callbackResponse.onFailureReadingResponse(code, requestBody, e);
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    callbackResponse.onFailure(t);
-                }
-
-            });
+            sendJson(isCache, requestBody, callbackResponse);
 
 
         } catch (NetworkConnectionNotFoundException e) {
 
-            if(isCache){
+            if (isCache) {
                 String requestBody = new GsonBuilder().create().toJson(eventRequest);
                 cacheEvent(requestBody);
             }
@@ -148,6 +112,66 @@ public class Event {
             throw new NetworkConnectionNotFoundException("Event was cached to send later.");
         }
 
+    }
+
+    protected void sendJsonAddingConnectionInfo(final boolean isCache, String requestBody, final CallbackResponse callbackResponse) throws NetworkConnectionNotFoundException, JSONException {
+        String connectionType = ConnectionInfo.getConnectionType(context);
+        requestBody = addConnectionInfo(requestBody, connectionType);
+        sendJson(isCache, requestBody, callbackResponse);
+    }
+
+    private void sendJson(final boolean isCache, final String requestBody, final CallbackResponse callbackResponse) {
+        Log.d(LOG_TAG, "Sending request " + requestBody);
+
+        TrackUserEventsService service = retrofit.create(TrackUserEventsService.class);
+
+        //Call<ResponseBody> call = service.sendEvent(this.apiKey, eventRequest);
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody);
+        Call<ResponseBody> call = service.sendEventRawJSON(this.apiKey, body);
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                final int code = response.code();
+                final boolean isPostedSuccessfully = isHttpCreatedCode(code);
+                String responseBody;
+                try {
+
+                    if (response.isSuccessful()) {
+                        responseBody = response.body().string();
+                    } else {
+                        responseBody = response.errorBody().string();
+
+                    }
+
+                    if (isPostedSuccessfully) {
+                        callbackResponse.onResponse(code, responseBody, requestBody);
+                    } else {
+
+                        if (isCache) {
+                            cacheEvent(requestBody);
+                        }
+
+                        callbackResponse.onFailedResponse(code, responseBody, requestBody);
+                    }
+
+                } catch (Exception e) {
+
+                    if (isCache) {
+                        cacheEvent(requestBody);
+                    }
+
+                    callbackResponse.onFailureReadingResponse(code, requestBody, e);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                callbackResponse.onFailure(t);
+            }
+
+        });
     }
 
 

@@ -1,7 +1,7 @@
 package com.titomilton.trackuserevents;
 
 
-public class InvalidEventRequestJsonException extends InvalidEventRequestException {
+class InvalidEventRequestJsonException extends InvalidEventRequestException {
 
     public InvalidEventRequestJsonException(String json, String msg) {
         this("", json, msg);

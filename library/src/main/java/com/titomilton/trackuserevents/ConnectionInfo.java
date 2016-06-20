@@ -6,7 +6,7 @@ import android.net.NetworkInfo;
 
 import com.titomilton.trackuserevents.rest.EventRequestMeta;
 
-public class ConnectionInfo {
+class ConnectionInfo {
 
     public static String getConnectionType(Context context) throws NetworkConnectionNotFoundException {
 

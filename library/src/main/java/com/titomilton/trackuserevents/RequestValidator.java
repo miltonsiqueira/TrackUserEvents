@@ -7,9 +7,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public final class RequestValidator {
+final class RequestValidator {
 
-    public static final String EVENT_NAME_PATTERN = "^ev_[A-Za-z0-9]+";
+    private static final String EVENT_NAME_PATTERN = "^ev_[A-Za-z0-9]+";
 
     public static void validate(EventRequest eventRequest) throws InvalidEventRequestException {
         if (eventRequest == null) {
