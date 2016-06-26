@@ -19,22 +19,31 @@ public class EventJsonSQLiteDao implements EventJsonDao {
     }
 
     @Override
-    public void addEventJson(String json) {
-        SQLiteDatabase db = dataBaseHandler.getWritableDatabase();
-        EventJson eventJson = new EventJson(json);
-        ContentValues values = new ContentValues();
-        values.put(DataBaseHandler.TABLE_EVENTS_KEY_NAME, eventJson.getJsonEvent());
-        db.insert(DataBaseHandler.TABLE_EVENTS, null, values);
-        db.close();
-        Log.d(LOG_TAG, "The tracked event was cached. " + eventJson.toString());
+    public void addEventJson(String apiKey, String json) {
+        SQLiteDatabase db = null;
+        try {
+            db = dataBaseHandler.getWritableDatabase();
+            EventJson eventJson = new EventJson(apiKey, json);
+            ContentValues values = new ContentValues();
+            values.put(EventJsonTable.TABLE_EVENTS_COLUMN_API_KEY, eventJson.getApiKey());
+            values.put(EventJsonTable.TABLE_EVENTS_COLUMN_JSON, eventJson.getJsonEvent());
+            db.insert(EventJsonTable.TABLE_EVENTS, null, values);
+            Log.d(LOG_TAG, "The tracked event was cached. " + eventJson.toString());
+        } finally {
+            if (db != null) db.close();
+        }
     }
 
     @Override
     public List<EventJson> getAllEventsJSON() {
         List<EventJson> eventJsonList = new ArrayList<>();
 
-        String selectQuery = "SELECT  * FROM " + DataBaseHandler.TABLE_EVENTS +
-                " ORDER BY " + DataBaseHandler.TABLE_EVENTS_KEY_ID;
+        String selectQuery = "SELECT " +
+                EventJsonTable.TABLE_EVENTS_COLUMN_ID + ", " +
+                EventJsonTable.TABLE_EVENTS_COLUMN_API_KEY + ", " +
+                EventJsonTable.TABLE_EVENTS_COLUMN_JSON +
+                " FROM " + EventJsonTable.TABLE_EVENTS +
+                " ORDER BY " + EventJsonTable.TABLE_EVENTS_COLUMN_ID;
         SQLiteDatabase db = null;
         Cursor cursor = null;
         try {
@@ -44,7 +53,8 @@ public class EventJsonSQLiteDao implements EventJsonDao {
                 do {
                     EventJson eventJson = new EventJson();
                     eventJson.setId(Integer.parseInt(cursor.getString(0)));
-                    eventJson.setJsonEvent(cursor.getString(1));
+                    eventJson.setApiKey(cursor.getString(1));
+                    eventJson.setJsonEvent(cursor.getString(2));
                     eventJsonList.add(eventJson);
                 } while (cursor.moveToNext());
             }
@@ -58,9 +68,13 @@ public class EventJsonSQLiteDao implements EventJsonDao {
 
     @Override
     public void removeEventJson(int id) {
-        SQLiteDatabase db = dataBaseHandler.getWritableDatabase();
-        db.delete(DataBaseHandler.TABLE_EVENTS, DataBaseHandler.TABLE_EVENTS_KEY_ID + " = ?",
-                new String[]{String.valueOf(id)});
-        db.close();
+        SQLiteDatabase db = null;
+        try {
+            db = dataBaseHandler.getWritableDatabase();
+            db.delete(EventJsonTable.TABLE_EVENTS, EventJsonTable.TABLE_EVENTS_COLUMN_ID + " = ?",
+                    new String[]{String.valueOf(id)});
+        } finally {
+            if (db != null) db.close();
+        }
     }
 }

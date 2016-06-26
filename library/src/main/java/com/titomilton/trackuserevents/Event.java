@@ -44,7 +44,7 @@ public class Event {
         this.eventRequest = eventRequest;
     }
 
-    protected static Event createFromName(String apiKey, String name, Context context, Retrofit retrofit) throws InvalidEventRequestException {
+    protected static Event createByName(String apiKey, String name, Context context, Retrofit retrofit) throws InvalidEventRequestException {
 
         Event event = new Event(apiKey, context, retrofit, new EventRequest());
 
@@ -89,6 +89,11 @@ public class Event {
         send(true, callbackResponse);
     }
 
+    public void sendWithouCache(final CallbackResponse callbackResponse) throws InvalidEventRequestException, NetworkConnectionNotFoundException {
+        send(false, callbackResponse);
+    }
+
+
     protected void send(final boolean isCache, final CallbackResponse callbackResponse) throws InvalidEventRequestException, NetworkConnectionNotFoundException {
 
         try {
@@ -97,6 +102,7 @@ public class Event {
             eventRequest.getMeta().setConnectionInfo(connectionType);
 
             RequestValidator.validate(eventRequest);
+
             final String requestBody = new GsonBuilder().create().toJson(eventRequest);
 
             sendJson(isCache, requestBody, callbackResponse);
@@ -114,14 +120,9 @@ public class Event {
 
     }
 
-    protected void sendJsonAddingConnectionInfo(final boolean isCache, String requestBody, final CallbackResponse callbackResponse) throws NetworkConnectionNotFoundException, JSONException {
-        String connectionType = ConnectionInfo.getConnectionType(context);
-        requestBody = addConnectionInfo(requestBody, connectionType);
-        sendJson(isCache, requestBody, callbackResponse);
-    }
 
     private void sendJson(final boolean isCache, final String requestBody, final CallbackResponse callbackResponse) {
-        Log.d(LOG_TAG, "Sending request " + requestBody);
+        Log.d(LOG_TAG, "Sending request apiKey=" + this.apiKey + " body="  + requestBody);
 
         TrackUserEventsService service = retrofit.create(TrackUserEventsService.class);
 
@@ -172,11 +173,13 @@ public class Event {
             }
 
         });
+
+
     }
 
 
     private void cacheEvent(String json) {
-        this.eventJsonDao.addEventJson(json);
+        this.eventJsonDao.addEventJson(this.apiKey, json);
     }
 
     private boolean isHttpCreatedCode(int code) {
@@ -192,11 +195,11 @@ public class Event {
         editor.apply();
         return eventNo;
     }
-
-    private String addConnectionInfo(String json, String connectionInfo) throws JSONException {
-        JSONObject requestBody = new JSONObject(json);
-        return addConnectionInfo(requestBody, connectionInfo);
-    }
+//
+//    private String addConnectionInfo(String json, String connectionInfo) throws JSONException {
+//        JSONObject requestBody = new JSONObject(json);
+//        return addConnectionInfo(requestBody, connectionInfo);
+//    }
 
     private String addConnectionInfo(JSONObject trackedEvent, String connectionInfo) throws JSONException {
         JSONObject meta = (JSONObject) trackedEvent.get(EventRequestMeta.ELEMENT_META);

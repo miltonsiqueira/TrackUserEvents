@@ -9,4 +9,6 @@
     <string name="cached_events">Cached events</string>
     <string name="clear">Clear</string>
     <string name="ev_mycustomevent">ev_MyCustomEvent</string>
+    <string name="set_alarm">Set alarm</string>
+    <string name="cancel_alarm">Cancel Alarm</string>
 </resources>

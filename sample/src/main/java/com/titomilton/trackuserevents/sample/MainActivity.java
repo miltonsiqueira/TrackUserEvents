@@ -7,9 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.titomilton.trackuserevents.CachedEventsAreBeingSendException;
 import com.titomilton.trackuserevents.CallbackResponse;
-import com.titomilton.trackuserevents.CallbackSendCachedEvents;
 import com.titomilton.trackuserevents.InvalidEventRequestException;
 import com.titomilton.trackuserevents.NetworkConnectionNotFoundException;
 import com.titomilton.trackuserevents.TrackUserEvents;
@@ -73,10 +71,39 @@ public class MainActivity extends Activity {
 
         createOnClickListenerButtonSendCachedEvents(editTextApiKey, textViewResult, callbackResponse);
 
-        createOnClickListenerButtonCachedEvents(editTextApiKey, textViewResult);
+        createOnClickListenerButtonCachedEvents(textViewResult);
 
         createOnClickListenerButtonClear(textViewResult);
 
+        createOnClickListenerButtonSetAlarm(textViewResult);
+
+        createOnClickListenerButtonCancelAlarm(textViewResult);
+
+
+    }
+
+    private void createOnClickListenerButtonSetAlarm(final TextView textViewResult) {
+        final Button buttonSetAlarm = (Button) findViewById(R.id.button_set_alarm);
+        buttonSetAlarm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final TrackUserEvents trackUserEvents = new TrackUserEvents(MainActivity.this);
+                trackUserEvents.setAlarm();
+                addToLog("Set Alarm ", textViewResult);
+            }
+        });
+    }
+
+    private void createOnClickListenerButtonCancelAlarm(final TextView textViewResult) {
+        final Button buttonCancelAlarm = (Button) findViewById(R.id.button_cancel_alarm);
+        buttonCancelAlarm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final TrackUserEvents trackUserEvents = new TrackUserEvents(MainActivity.this);
+                trackUserEvents.cancelAlarm();
+                addToLog("Cancel Alarm ", textViewResult);
+            }
+        });
     }
 
     private void createOnClickListenerButtonClear(final TextView textViewResult) {
@@ -98,38 +125,9 @@ public class MainActivity extends Activity {
 
                 addToLog("Send tracked events - ApiKey: " + editTextApiKey.getText().toString(), textViewResult);
 
-                final TrackUserEvents trackUserEvents = new TrackUserEvents(editTextApiKey.getText().toString(), MainActivity.this);
-                try {
-                    trackUserEvents.sendCachedEvents(new CallbackSendCachedEvents() {
-                        @Override
-                        public void onEndSendEvents(int totalProcessedEvents) {
-                            String text = "End send events";
-                            addToLog(text, textViewResult);
-                        }
+                final TrackUserEvents trackUserEvents = new TrackUserEvents(MainActivity.this);
+                trackUserEvents.sendCachedEvents();
 
-                        @Override
-                        public void onResponse(int responseCode, String responseBody, String requestBody) {
-                            callbackResponse.onResponse(responseCode, responseBody, requestBody);
-                        }
-
-                        @Override
-                        public void onFailure(Throwable t) {
-                            callbackResponse.onFailure(t);
-                        }
-
-                        @Override
-                        public void onFailedResponse(int code, String responseBody, String requestBody) {
-                            callbackResponse.onFailedResponse(code, responseBody, requestBody);
-                        }
-
-                        @Override
-                        public void onFailureReadingResponse(int code, String requestBody, Throwable t) {
-                            callbackResponse.onFailureReadingResponse(code, requestBody, t);
-                        }
-                    });
-                } catch (NetworkConnectionNotFoundException | CachedEventsAreBeingSendException e) {
-                    addToLog(e.getMessage(), textViewResult);
-                }
             }
         });
     }
@@ -143,18 +141,18 @@ public class MainActivity extends Activity {
                 final EditText editTextEventName = (EditText) findViewById(R.id.editTextEventName);
                 addToLog("Send - ApiKey: " + editTextApiKey.getText().toString() +
                         " EventName: " + editTextEventName.getText().toString(), textViewResult);
-
-                final TrackUserEvents trackUserEvents = new TrackUserEvents(editTextApiKey.getText().toString(), MainActivity.this);
-
-
-                Map<String, Object> otherParameters = new HashMap<>();
-                otherParameters.put("other1", "Test2");
-                otherParameters.put("other2", 12321);
-                otherParameters.put("other3", false);
-
-                String eventName = editTextEventName.getText().toString();
                 try {
-                    trackUserEvents.newEvent(eventName)
+
+                    final TrackUserEvents trackUserEvents = new TrackUserEvents(editTextApiKey.getText().toString(), MainActivity.this);
+
+                    Map<String, Object> otherParameters = new HashMap<>();
+                    otherParameters.put("other1", "Test2");
+                    otherParameters.put("other2", 12321);
+                    otherParameters.put("other3", false);
+
+                    String eventName = editTextEventName.getText().toString();
+
+                    trackUserEvents.createEventByName(eventName)
                             .addParameter("Param1", 1)
                             .addParameter("Param2", "test")
                             .addParameter("Param3", 18.39)
@@ -171,12 +169,12 @@ public class MainActivity extends Activity {
     }
 
 
-    private void createOnClickListenerButtonCachedEvents(final EditText editTextApiKey, final TextView textViewResult) {
+    private void createOnClickListenerButtonCachedEvents(final TextView textViewResult) {
         Button buttonCachedEvents = (Button) findViewById(R.id.button_cached_events);
         buttonCachedEvents.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TrackUserEvents trackUserEvents = new TrackUserEvents(editTextApiKey.getText().toString(), MainActivity.this);
+                TrackUserEvents trackUserEvents = new TrackUserEvents(MainActivity.this);
                 addToLog("Cached events", textViewResult);
                 List<EventJson> listEventJson = trackUserEvents.getCachedEvents();
                 StringBuilder sb = new StringBuilder();

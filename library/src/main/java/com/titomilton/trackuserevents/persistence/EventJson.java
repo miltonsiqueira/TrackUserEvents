@@ -2,12 +2,14 @@ package com.titomilton.trackuserevents.persistence;
 
 public class EventJson {
     private int id;
+    private String apiKey;
     private String jsonEvent;
 
     public EventJson() {
     }
 
-    public EventJson(String jsonEvent) {
+    public EventJson(String apiKey, String jsonEvent) {
+        this.apiKey = apiKey;
         this.jsonEvent = jsonEvent;
     }
 
@@ -27,9 +29,17 @@ public class EventJson {
         this.jsonEvent = jsonEvent;
     }
 
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
     @Override
     public String toString() {
-        return "id:" + this.id + " jsonEvent:" + this.jsonEvent;
+        return "id:" + this.id + " apiKey:" + apiKey + " jsonEvent:" + this.jsonEvent;
     }
 
 }
