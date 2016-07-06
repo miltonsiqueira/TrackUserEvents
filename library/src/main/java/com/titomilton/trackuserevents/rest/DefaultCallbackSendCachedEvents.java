@@ -1,4 +1,6 @@
-package com.titomilton.trackuserevents;
+package com.titomilton.trackuserevents.rest;
+
+import com.titomilton.trackuserevents.cache.CallbackSendCachedEvents;
 
 public class DefaultCallbackSendCachedEvents implements CallbackSendCachedEvents {
     @Override
@@ -7,7 +9,7 @@ public class DefaultCallbackSendCachedEvents implements CallbackSendCachedEvents
     }
 
     @Override
-    public void onResponse(int responseCode, String responseBody, String requestBody) {
+    public void onResponse(String responseBody, String requestBody) {
 
     }
 
@@ -17,7 +19,7 @@ public class DefaultCallbackSendCachedEvents implements CallbackSendCachedEvents
     }
 
     @Override
-    public void onFailedResponse(int code, String responseBody, String requestBody) {
+    public void onInvalidCodeResponse(int code, String responseBody, String requestBody) {
 
     }
 

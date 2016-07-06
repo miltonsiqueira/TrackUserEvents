@@ -7,7 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.titomilton.trackuserevents.CallbackResponse;
+import com.titomilton.trackuserevents.rest.CallbackResponse;
 import com.titomilton.trackuserevents.InvalidEventRequestException;
 import com.titomilton.trackuserevents.NetworkConnectionNotFoundException;
 import com.titomilton.trackuserevents.TrackUserEvents;
@@ -32,18 +32,16 @@ public class MainActivity extends Activity {
 
         final CallbackResponse callbackResponse = new CallbackResponse() {
             @Override
-            public void onResponse(int responseCode, String responseBody, String requestBody) {
-                String text = "onResponse() code:" + responseCode +
-                        System.getProperty("line.separator") +
-                        "Response body:" + responseBody +
+            public void onResponse(String responseBody, String requestBody) {
+                String text = "onResponse() Response body:" + responseBody +
                         System.getProperty("line.separator") +
                         "Request body:" + requestBody;
                 addToLog(text, textViewResult);
             }
 
             @Override
-            public void onFailedResponse(int code, String responseBody, String requestBody) {
-                String text = "onFailedResponse() code:" + code +
+            public void onInvalidCodeResponse(int code, String responseBody, String requestBody) {
+                String text = "onInvalidCodeResponse() code:" + code +
                         System.getProperty("line.separator") +
                         "Response body:" + responseBody +
                         System.getProperty("line.separator") +

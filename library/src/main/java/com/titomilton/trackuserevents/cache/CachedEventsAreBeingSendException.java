@@ -1,4 +1,4 @@
-package com.titomilton.trackuserevents;
+package com.titomilton.trackuserevents.cache;
 
 public class CachedEventsAreBeingSendException extends Throwable {
     private int totalPending;

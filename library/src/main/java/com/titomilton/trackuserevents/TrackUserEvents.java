@@ -9,26 +9,19 @@ import com.titomilton.trackuserevents.persistence.DataBaseHandler;
 import com.titomilton.trackuserevents.persistence.EventJson;
 import com.titomilton.trackuserevents.persistence.EventJsonDao;
 import com.titomilton.trackuserevents.persistence.EventJsonSQLiteDao;
-import com.titomilton.trackuserevents.rest.TrackUserEventsService;
 
 import java.util.List;
-
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class TrackUserEvents {
 
     private final String LOG_TAG = TrackUserEvents.class.getSimpleName();
     private String apiKey;
     private final Context context;
-    private final Retrofit retrofit;
+
 
     public TrackUserEvents(Context context){
         this.context = context;
-        this.retrofit = new Retrofit.Builder()
-                .baseUrl(TrackUserEventsService.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+
         setAlarm();
     }
 
@@ -46,11 +39,11 @@ public class TrackUserEvents {
     }
 
     public Event createEventByName(String name) throws InvalidEventRequestException {
-        return Event.createByName(this.apiKey, name, this.context, this.retrofit);
+        return Event.createByName(this.apiKey, name, this.context);
     }
 
     public Event createEventByJson(String json){
-        return Event.createFromJson(this.apiKey, json, context, this.retrofit);
+        return Event.createFromJson(this.apiKey, json, context);
     }
 
     public List<EventJson> getCachedEvents() {

@@ -5,11 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.titomilton.trackuserevents.CachedEventsAreBeingSendException;
-import com.titomilton.trackuserevents.CallbackResponse;
-import com.titomilton.trackuserevents.CallbackSendCachedEvents;
+import com.titomilton.trackuserevents.rest.CallbackResponse;
 import com.titomilton.trackuserevents.ConnectionInfo;
-import com.titomilton.trackuserevents.DefaultCallbackSendCachedEvents;
+import com.titomilton.trackuserevents.rest.DefaultCallbackSendCachedEvents;
 import com.titomilton.trackuserevents.InvalidEventRequestException;
 import com.titomilton.trackuserevents.NetworkConnectionNotFoundException;
 import com.titomilton.trackuserevents.TrackUserEvents;
@@ -86,9 +84,9 @@ public class SendCachedEventsService extends IntentService {
                                 .createEventByJson(eventJson.getJsonEvent())
                                 .sendWithouCache(new CallbackResponse() {
                                     @Override
-                                    public void onResponse(int responseCode, String responseBody, String requestBody) {
+                                    public void onResponse(String responseBody, String requestBody) {
                                         eventJsonDao.removeEventJson(id);
-                                        callbackSendCachedEvents.onResponse(responseCode, responseBody, requestBody);
+                                        callbackSendCachedEvents.onResponse(responseBody, requestBody);
                                         cachedEventProcessed(totalEvents, callbackSendCachedEvents);
                                     }
 
@@ -99,8 +97,8 @@ public class SendCachedEventsService extends IntentService {
                                     }
 
                                     @Override
-                                    public void onFailedResponse(int code, String responseBody, String requestBody) {
-                                        callbackSendCachedEvents.onFailedResponse(code, responseBody, requestBody);
+                                    public void onInvalidCodeResponse(int code, String responseBody, String requestBody) {
+                                        callbackSendCachedEvents.onInvalidCodeResponse(code, responseBody, requestBody);
                                         cachedEventProcessed(totalEvents, callbackSendCachedEvents);
                                     }
 

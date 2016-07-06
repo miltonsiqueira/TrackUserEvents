@@ -9,23 +9,15 @@ import com.google.gson.GsonBuilder;
 import com.titomilton.trackuserevents.persistence.DataBaseHandler;
 import com.titomilton.trackuserevents.persistence.EventJsonDao;
 import com.titomilton.trackuserevents.persistence.EventJsonSQLiteDao;
+import com.titomilton.trackuserevents.rest.CallbackResponse;
 import com.titomilton.trackuserevents.rest.EventRequest;
 import com.titomilton.trackuserevents.rest.EventRequestMeta;
-import com.titomilton.trackuserevents.rest.TrackUserEventsService;
+import com.titomilton.trackuserevents.rest.SendEventTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.HttpURLConnection;
 import java.util.Map;
-
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class Event {
 
@@ -33,20 +25,19 @@ public class Event {
     private final EventRequest eventRequest;
     private final Context context;
     private final String apiKey;
-    private final Retrofit retrofit;
     private final EventJsonDao eventJsonDao;
 
-    private Event(String apiKey, Context context, Retrofit retrofit, EventRequest eventRequest) {
+    private Event(String apiKey, Context context, EventRequest eventRequest) {
         this.apiKey = apiKey;
         this.context = context;
-        this.retrofit = retrofit;
+
         this.eventJsonDao = new EventJsonSQLiteDao(new DataBaseHandler(context));
         this.eventRequest = eventRequest;
     }
 
-    protected static Event createByName(String apiKey, String name, Context context, Retrofit retrofit) throws InvalidEventRequestException {
+    protected static Event createByName(String apiKey, String name, Context context) throws InvalidEventRequestException {
 
-        Event event = new Event(apiKey, context, retrofit, new EventRequest());
+        Event event = new Event(apiKey, context, new EventRequest());
 
         RequestValidator.validateName(name);
         event.eventRequest.setMeta(new EventRequestMeta());
@@ -59,10 +50,10 @@ public class Event {
 
     }
 
-    protected static Event createFromJson(String apiKey, String json, Context context, Retrofit retrofit) {
+    protected static Event createFromJson(String apiKey, String json, Context context) {
         EventRequest eventRequest = new GsonBuilder().create().fromJson(json, EventRequest.class);
 
-        return new Event(apiKey, context, retrofit, eventRequest);
+        return new Event(apiKey, context, eventRequest);
     }
 
     /**
@@ -124,66 +115,14 @@ public class Event {
     private void sendJson(final boolean isCache, final String requestBody, final CallbackResponse callbackResponse) {
         Log.d(LOG_TAG, "Sending request apiKey=" + this.apiKey + " body="  + requestBody);
 
-        TrackUserEventsService service = retrofit.create(TrackUserEventsService.class);
+        SendEventTask sendEventTask = new SendEventTask(isCache, eventJsonDao, this.apiKey, requestBody, callbackResponse);
 
-        //Call<ResponseBody> call = service.sendEvent(this.apiKey, eventRequest);
-
-        RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody);
-        Call<ResponseBody> call = service.sendEventRawJSON(this.apiKey, body);
-
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                final int code = response.code();
-                final boolean isPostedSuccessfully = isHttpCreatedCode(code);
-                String responseBody;
-                try {
-
-                    if (response.isSuccessful()) {
-                        responseBody = response.body().string();
-                    } else {
-                        responseBody = response.errorBody().string();
-
-                    }
-
-                    if (isPostedSuccessfully) {
-                        callbackResponse.onResponse(code, responseBody, requestBody);
-                    } else {
-
-                        if (isCache) {
-                            cacheEvent(requestBody);
-                        }
-
-                        callbackResponse.onFailedResponse(code, responseBody, requestBody);
-                    }
-
-                } catch (Exception e) {
-
-                    if (isCache) {
-                        cacheEvent(requestBody);
-                    }
-
-                    callbackResponse.onFailureReadingResponse(code, requestBody, e);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                callbackResponse.onFailure(t);
-            }
-
-        });
-
+        sendEventTask.execute();
 
     }
-
 
     private void cacheEvent(String json) {
         this.eventJsonDao.addEventJson(this.apiKey, json);
-    }
-
-    private boolean isHttpCreatedCode(int code) {
-        return code == HttpURLConnection.HTTP_CREATED;
     }
 
     private long getNextEventNo() {
