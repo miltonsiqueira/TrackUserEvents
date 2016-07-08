@@ -1,13 +1,6 @@
 package com.titomilton.trackuserevents.rest;
 
-import com.titomilton.trackuserevents.cache.CallbackSendCachedEvents;
-
-public class DefaultCallbackSendCachedEvents implements CallbackSendCachedEvents {
-    @Override
-    public void onEndSendEvents(int totalProcessedEvents) {
-
-    }
-
+public class DefaultCallbackResponse implements CallbackResponse{
     @Override
     public void onResponse(String responseBody, String requestBody) {
 

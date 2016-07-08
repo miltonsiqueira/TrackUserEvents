@@ -21,12 +21,15 @@ import java.util.Map;
 
 public class MainActivity extends Activity {
 
-    final StringBuilder sbLog = new StringBuilder();
-
+    private final StringBuilder sbLog = new StringBuilder();
+    private TrackUserEvents trackUserEvents;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        trackUserEvents = new TrackUserEvents(this.getApplicationContext());
+
         final EditText editTextApiKey = (EditText) findViewById(R.id.editTextAPIKey);
         final TextView textViewResult = (TextView) findViewById(R.id.textLog);
 
@@ -85,7 +88,6 @@ public class MainActivity extends Activity {
         buttonSetAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final TrackUserEvents trackUserEvents = new TrackUserEvents(MainActivity.this);
                 trackUserEvents.setAlarm();
                 addToLog("Set Alarm ", textViewResult);
             }
@@ -97,7 +99,6 @@ public class MainActivity extends Activity {
         buttonCancelAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final TrackUserEvents trackUserEvents = new TrackUserEvents(MainActivity.this);
                 trackUserEvents.cancelAlarm();
                 addToLog("Cancel Alarm ", textViewResult);
             }
@@ -123,7 +124,6 @@ public class MainActivity extends Activity {
 
                 addToLog("Send tracked events - ApiKey: " + editTextApiKey.getText().toString(), textViewResult);
 
-                final TrackUserEvents trackUserEvents = new TrackUserEvents(MainActivity.this);
                 trackUserEvents.sendCachedEvents();
 
             }
@@ -141,7 +141,8 @@ public class MainActivity extends Activity {
                         " EventName: " + editTextEventName.getText().toString(), textViewResult);
                 try {
 
-                    final TrackUserEvents trackUserEvents = new TrackUserEvents(editTextApiKey.getText().toString(), MainActivity.this);
+
+                    trackUserEvents.setApiKey(editTextApiKey.getText().toString());
 
                     Map<String, Object> otherParameters = new HashMap<>();
                     otherParameters.put("other1", "Test2");
@@ -172,7 +173,7 @@ public class MainActivity extends Activity {
         buttonCachedEvents.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TrackUserEvents trackUserEvents = new TrackUserEvents(MainActivity.this);
+
                 addToLog("Cached events", textViewResult);
                 List<EventJson> listEventJson = trackUserEvents.getCachedEvents();
                 StringBuilder sb = new StringBuilder();

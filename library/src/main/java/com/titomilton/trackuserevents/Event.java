@@ -10,6 +10,7 @@ import com.titomilton.trackuserevents.persistence.DataBaseHandler;
 import com.titomilton.trackuserevents.persistence.EventJsonDao;
 import com.titomilton.trackuserevents.persistence.EventJsonSQLiteDao;
 import com.titomilton.trackuserevents.rest.CallbackResponse;
+import com.titomilton.trackuserevents.rest.DefaultCallbackResponse;
 import com.titomilton.trackuserevents.rest.EventRequest;
 import com.titomilton.trackuserevents.rest.EventRequestMeta;
 import com.titomilton.trackuserevents.rest.SendEventTask;
@@ -76,11 +77,15 @@ public class Event {
         return this;
     }
 
+    public void send() throws InvalidEventRequestException, NetworkConnectionNotFoundException {
+        send(true, new DefaultCallbackResponse());
+    }
+
     public void send(final CallbackResponse callbackResponse) throws NetworkConnectionNotFoundException, InvalidEventRequestException {
         send(true, callbackResponse);
     }
 
-    public void sendWithouCache(final CallbackResponse callbackResponse) throws InvalidEventRequestException, NetworkConnectionNotFoundException {
+    public void sendWithoutCache(final CallbackResponse callbackResponse) throws InvalidEventRequestException, NetworkConnectionNotFoundException {
         send(false, callbackResponse);
     }
 

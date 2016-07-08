@@ -7,7 +7,6 @@ import android.util.Log;
 
 import com.titomilton.trackuserevents.rest.CallbackResponse;
 import com.titomilton.trackuserevents.ConnectionInfo;
-import com.titomilton.trackuserevents.rest.DefaultCallbackSendCachedEvents;
 import com.titomilton.trackuserevents.InvalidEventRequestException;
 import com.titomilton.trackuserevents.NetworkConnectionNotFoundException;
 import com.titomilton.trackuserevents.TrackUserEvents;
@@ -82,7 +81,7 @@ public class SendCachedEventsService extends IntentService {
                     try {
                         trackUserEvents.setApiKey(eventJson.getApiKey())
                                 .createEventByJson(eventJson.getJsonEvent())
-                                .sendWithouCache(new CallbackResponse() {
+                                .sendWithoutCache(new CallbackResponse() {
                                     @Override
                                     public void onResponse(String responseBody, String requestBody) {
                                         eventJsonDao.removeEventJson(id);

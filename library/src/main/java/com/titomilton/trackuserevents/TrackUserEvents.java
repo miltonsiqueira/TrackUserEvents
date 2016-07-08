@@ -21,8 +21,6 @@ public class TrackUserEvents {
 
     public TrackUserEvents(Context context){
         this.context = context;
-
-        setAlarm();
     }
 
     public TrackUserEvents(String apiKey, Context context) throws InvalidApiKeyException {
